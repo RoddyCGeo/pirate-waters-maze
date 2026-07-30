@@ -186,7 +186,7 @@
   }
   button.helm:hover{ transform:translateY(-2px); box-shadow:0 5px 0 rgba(0,0,0,0.4), 0 10px 18px rgba(0,0,0,0.3); }
   button.helm:active{ transform:translateY(1px); box-shadow:0 2px 0 rgba(0,0,0,0.4); }
-  button.helm.port::before{ content:"◀ "; color:var(--gold-bright); }
+  button.helm.larboard::before{ content:"◀ "; color:var(--gold-bright); }
   button.helm.straight::before{ content:"▲ "; color:var(--gold-bright); }
   button.helm.starboard::before{ content:"▶ "; color:var(--gold-bright); }
 
@@ -284,19 +284,19 @@
 <script>
 const TOTAL = 10;
 
-// Each junction: narrative text, and three options (port/straight/starboard).
+// Each junction: narrative text, and three options (larboard/straight/starboard).
 // Each option: correct (bool) and, if wrong, a hazard {type, text}.
 const junctions = [
 {
-text:"The Lady Eleanor has barely cleared the headland when the lookout cries, 'Sail astern!' A lean black brig is gaining fast. To port the water pales over hidden shoals, while to starboard the sea remains deep and blue. Captain Mercer turns calmly to Mr Wallace. 'Your helm?'",
+text:"The Lady Eleanor has barely cleared the headland when the lookout cries, 'Sail astern!' A lean black brig is gaining fast. To larboard the water pales over hidden shoals, while to starboard the sea remains deep and blue. Captain Mercer turns calmly to Mr Wallace. 'Your helm?'",
 correct:"starboard",
-port:{type:"Shallows",text:"You edge toward the coast seeking shelter. The keel settles gently into sand. Behind you the pirate closes the distance until escape is impossible."},
+larboard:{type:"Shallows",text:"You edge toward the coast seeking shelter. The keel settles gently into sand. Behind you the pirate closes the distance until escape is impossible."},
 straight:{type:"Rocks",text:"You hesitate, watching the pirate instead of the sea ahead. A hidden rocky shelf tears open the hull."}
 },
 
 {
-text:"The pirate has matched your course. Ahead, white water marks a dangerous reef stretching across the obvious route. Mercer spots a narrow opening to port.",
-correct:"port",
+text:"The pirate has matched your course. Ahead, white water marks a dangerous reef stretching across the obvious route. Mercer spots a narrow opening to larboard.",
+correct:"larboard",
 straight:{type:"Reef",text:"You steer directly toward the breaking water. Seconds later the reef splinters the bow."},
 starboard:{type:"Current",text:"You avoid the reef only to enter a fierce tidal race. The current robs you of speed while the pirate gains."}
 },
@@ -304,20 +304,20 @@ starboard:{type:"Current",text:"You avoid the reef only to enter a fierce tidal 
 {
 text:"Two rocky islands stand like sentries. Between them lies a deep-water passage scarcely wider than your ship. The pirate hesitates, unsure whether to follow.",
 correct:"straight",
-port:{type:"Rocks",text:"You favour the western island. Hidden rocks extend far beneath the surface and bring the voyage to an abrupt end."},
+larboard:{type:"Rocks",text:"You favour the western island. Hidden rocks extend far beneath the surface and bring the voyage to an abrupt end."},
 starboard:{type:"Shallows",text:"You swing toward the eastern island and run aground on a broad gravel shoal."}
 },
 
 {
-text:"A warning cannon echoes across the sea. The pirate captain wants you frightened. At that moment a fresh breeze fills from the port quarter. Mercer smiles. 'Now we shall see who truly understands the wind.'",
+text:"A warning cannon echoes across the sea. The pirate captain wants you frightened. At that moment a fresh breeze fills from the larboard quarter. Mercer smiles. 'Now we shall see who truly understands the wind.'",
 correct:"starboard",
-port:{type:"Pirates",text:"Turning to port carries you directly across the pirate's bow. Grappling hooks bite into the rail."},
+larboard:{type:"Pirates",text:"Turning to larboard carries you directly across the pirate's bow. Grappling hooks bite into the rail."},
 straight:{type:"Reef",text:"Your eyes remain fixed on the pirate while an unseen reef waits directly ahead."}
 },
 
 {
 text:"An old black navigation buoy rises from the swell. Mercer quietly recalls a pilot's saying: 'Leave the black buoy to starboard, and you'll live to tell the tale.'",
-correct:"port",
+correct:"larboard",
 straight:{type:"Reef",text:"You ignore the old saying. The reef proves the pilot was wiser than you."},
 starboard:{type:"Rocks",text:"Passing the buoy on the wrong side leads straight onto submerged rocks."}
 },
@@ -325,20 +325,20 @@ starboard:{type:"Rocks",text:"Passing the buoy on the wrong side leads straight 
 {
 text:"Dark clouds gather. Rain begins to fall. The pirate brig shortens sail, unwilling to risk the approaching squall, but Mercer presses onward through the deep-water channel.",
 correct:"straight",
-port:{type:"Current",text:"Seeking calmer water, you stray into a swirling eddy that leaves the ship helpless."},
+larboard:{type:"Current",text:"Seeking calmer water, you stray into a swirling eddy that leaves the ship helpless."},
 starboard:{type:"Rocks",text:"The edge of the channel hides a rocky ledge beneath the waves."}
 },
 
 {
-text:"The storm now hides both ships from one another. Lightning flashes on the port horizon. Mercer knows one bold decision could finally shake the pirate's pursuit.",
+text:"The storm now hides both ships from one another. Lightning flashes on the larboard horizon. Mercer knows one bold decision could finally shake the pirate's pursuit.",
 correct:"starboard",
-port:{type:"Pirates",text:"The rain suddenly clears. The pirate emerges almost alongside and boards before you can escape."},
+larboard:{type:"Pirates",text:"The rain suddenly clears. The pirate emerges almost alongside and boards before you can escape."},
 straight:{type:"Shallows",text:"You hold your course into water that is far shallower than the charts suggested."}
 },
 
 {
 text:"The harbour coast comes into view, protected by reefs known only to local captains, and dark, murky waters to starboard. Mercer trusts memory more than sight. 'Follow the blue water, Mr Wallace.'",
-correct:"port",
+correct:"larboard",
 straight:{type:"Rocks",text:"You cut the corner too tightly and strike the headland."},
 starboard:{type:"Reef",text:"You stand too far offshore and meet the outer reef instead."}
 },
@@ -346,14 +346,14 @@ starboard:{type:"Reef",text:"You stand too far offshore and meet the outer reef 
 {
 text:"The harbour lights flicker through the mist. Only one narrow channel remains. Strong tidal currents swirl on both sides, eager to drag careless ships back to sea.",
 correct:"straight",
-port:{type:"Shallows",text:"You stray from the channel and settle gently onto the mud, within sight of safety."},
+larboard:{type:"Shallows",text:"You stray from the channel and settle gently onto the mud, within sight of safety."},
 starboard:{type:"Current",text:"The ebb tide seizes the ship and sweeps her back toward the waiting pirate."}
 },
 
 {
-text:"The harbour guns stand ahead. The pirate brig slows, unwilling to challenge the batteries guarding the entrance. Mercer removes his hat and quietly gives one final order. 'Guide her to Port, Mr Wallace'",
-correct:"starboard",
-port:{type:"Rocks",text:"One last mistake, within sight of home. The harbour rocks claim the Lady Eleanor."},
+text:"The harbour guns stand ahead. The pirate brig slows, unwilling to challenge the batteries guarding the entrance. Mercer removes his hat and quietly gives one final order. 'Guide her to larboard, Mr Wallace'",
+correct:"larboard",
+starboard:{type:"Rocks",text:"One last mistake, within sight of home. The harbour rocks claim the Lady Eleanor."},
 straight:{type:"Reef",text:"A submerged training wall lies hidden beneath the surface. Safe harbour was only yards away."}
 }
 ];
@@ -414,7 +414,7 @@ function renderJunction(){
   const choices = document.getElementById('choices');
   choices.innerHTML = '';
   const opts = [
-    {key:'port', label:'Port'},
+    {key:'larboard', label:'larboard'},
     {key:'straight', label:'Straight Ahead'},
     {key:'starboard', label:'Starboard'}
   ];
