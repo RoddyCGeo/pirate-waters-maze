@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Safe Harbour — A Pirate Waters Maze</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Spectral:wght@400;500;600&family=Spectral+SC:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#071523;
+    --navy:#0c2036;
+    --navy-light:#163353;
+    --parchment:#ecdfbd;
+    --parchment-dark:#dccb9e;
+    --ink:#2b2013;
+    --gold:#c9a24b;
+    --gold-bright:#e7c576;
+    --teal:#1f5c5c;
+    --danger:#7c2f2f;
+    --danger-bright:#a94b41;
+    --win:#2d6a4f;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(199,163,90,0.08), transparent 45%),
+      radial-gradient(ellipse at 80% 90%, rgba(31,92,92,0.15), transparent 50%),
+      linear-gradient(180deg, var(--navy-deep), var(--navy) 55%, var(--navy-light));
+    color:var(--ink);
+    font-family:'Spectral', serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .stage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    position:relative;
+  }
+  /* ambient waves */
+  .waves{
+    position:fixed; left:0; right:0; bottom:0; height:140px;
+    pointer-events:none; opacity:0.35; z-index:0;
+  }
+  .waves svg{width:100%; height:100%;}
+  @media (prefers-reduced-motion: no-preference){
+    .wave-path{ animation: drift 18s linear infinite; }
+    .wave-path.slow{ animation-duration: 30s; opacity:0.6; }
+  }
+  @keyframes drift{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-400px); }
+  }
+
+  .compass{
+    position:absolute; top:22px; left:22px; width:64px; height:64px;
+    opacity:0.55; z-index:1;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .compass{ animation: spin 140s linear infinite; }
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .card{
+    position:relative; z-index:2;
+    width:100%; max-width:640px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.05), transparent 12%),
+      var(--parchment);
+    border-radius:6px;
+    padding:34px 34px 30px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.35),
+      0 30px 60px rgba(0,0,0,0.55),
+      inset 0 0 60px rgba(120,90,40,0.12);
+    background-image:
+      repeating-linear-gradient(90deg, rgba(120,90,40,0.035) 0 1px, transparent 1px 90px),
+      repeating-linear-gradient(0deg, rgba(120,90,40,0.035) 0 1px, transparent 1px 90px);
+  }
+  .card::before{
+    content:"";
+    position:absolute; inset:8px;
+    border:1px solid rgba(120,90,40,0.35);
+    border-radius:3px;
+    pointer-events:none;
+  }
+
+  .eyebrow{
+    font-family:'Spectral SC', serif;
+    letter-spacing:0.22em;
+    font-size:11.5px;
+    color:var(--teal);
+    text-transform:uppercase;
+    margin:0 0 6px;
+    text-align:center;
+  }
+  h1{
+    font-family:'Pirata One', cursive;
+    font-size:42px;
+    letter-spacing:0.03em;
+    color:var(--ink);
+    text-align:center;
+    margin:0 0 4px;
+    line-height:1;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:14.5px;
+    color:#5a4b2e;
+    margin:0 0 22px;
+    font-style:italic;
+  }
+
+  /* voyage rail */
+  .rail{
+    display:flex; align-items:center; justify-content:center;
+    gap:6px; margin:0 0 26px; flex-wrap:wrap;
+    padding:10px 6px;
+    background:rgba(11,31,51,0.06);
+    border-radius:20px;
+  }
+  .station{
+    width:22px; height:22px; border-radius:50%;
+    border:2px solid rgba(43,32,19,0.35);
+    background:rgba(255,255,255,0.4);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:rgba(43,32,19,0.5);
+    position:relative;
+    flex-shrink:0;
+    transition:all 0.35s ease;
+  }
+  .station.done{
+    background:var(--teal); border-color:var(--teal); color:var(--parchment);
+  }
+  .station.current{
+    background:var(--gold); border-color:var(--gold-bright);
+    box-shadow:0 0 0 4px rgba(201,162,75,0.25);
+    color:var(--ink);
+  }
+  .station.wrecked{
+    background:var(--danger); border-color:var(--danger-bright); color:var(--parchment);
+  }
+  .station.harbour{ border-radius:6px; }
+  .rail-link{
+    width:12px; height:2px; background:rgba(43,32,19,0.25); flex-shrink:0;
+  }
+
+  .narrative{
+    font-size:17px; line-height:1.55;
+    color:var(--ink);
+    margin:0 0 22px;
+    min-height:96px;
+  }
+  .narrative .tag{
+    display:inline-block;
+    font-family:'Spectral SC', serif;
+    font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase;
+    padding:2px 9px; border-radius:3px;
+    margin-bottom:10px;
+  }
+  .tag.junction{ background:rgba(31,92,92,0.15); color:var(--teal); }
+  .tag.hazard{ background:rgba(124,47,47,0.15); color:var(--danger); }
+  .tag.win{ background:rgba(45,106,79,0.16); color:var(--win); }
+
+  .choices{
+    display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  button.helm{
+    font-family:'Spectral SC', serif;
+    font-size:13px; letter-spacing:0.08em; text-transform:uppercase;
+    padding:13px 20px;
+    border-radius:5px;
+    border:1px solid rgba(43,32,19,0.4);
+    background:linear-gradient(180deg, #3a2c18, #241a0e);
+    color:var(--parchment);
+    cursor:pointer;
+    min-width:140px;
+    box-shadow:0 3px 0 rgba(0,0,0,0.4), 0 6px 14px rgba(0,0,0,0.25);
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  button.helm:hover{ transform:translateY(-2px); box-shadow:0 5px 0 rgba(0,0,0,0.4), 0 10px 18px rgba(0,0,0,0.3); }
+  button.helm:active{ transform:translateY(1px); box-shadow:0 2px 0 rgba(0,0,0,0.4); }
+  button.helm.port::before{ content:"◀ "; color:var(--gold-bright); }
+  button.helm.straight::before{ content:"▲ "; color:var(--gold-bright); }
+  button.helm.starboard::before{ content:"▶ "; color:var(--gold-bright); }
+
+  .again{
+    display:none; text-align:center; margin-top:6px;
+    flex-direction:column; align-items:center; gap:10px;
+  }
+  button.restart{
+    font-family:'Spectral SC', serif;
+    font-size:12.5px; letter-spacing:0.1em; text-transform:uppercase;
+    padding:10px 22px; border-radius:20px; cursor:pointer;
+    border:1px solid var(--teal); background:transparent; color:var(--teal);
+    display:block;
+  }
+  button.restart:hover{ background:var(--teal); color:var(--parchment); }
+  button.restart.subtle{
+    border:none; color:#8a7a56; font-size:11px; padding:2px 4px;
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  button.restart.subtle:hover{ background:transparent; color:var(--danger); }
+
+  .footer-stats{
+    display:flex; justify-content:space-between;
+    font-size:12px; color:#6b5a38; margin-top:22px;
+    border-top:1px solid rgba(43,32,19,0.15); padding-top:12px;
+    font-family:'Spectral SC', serif; letter-spacing:0.05em;
+  }
+
+  .flash{ animation:none; }
+  @media (prefers-reduced-motion: no-preference){
+    .flash-hazard{ animation:shake 0.4s ease; }
+    .flash-win{ animation:glow 1.2s ease; }
+  }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-6px); }
+    40%{ transform:translateX(5px); }
+    60%{ transform:translateX(-3px); }
+    80%{ transform:translateX(2px); }
+  }
+  @keyframes glow{
+    0%{ box-shadow:0 0 0 1px rgba(0,0,0,0.35), 0 30px 60px rgba(0,0,0,0.55); }
+    50%{ box-shadow:0 0 0 1px rgba(201,162,75,0.6), 0 30px 80px rgba(201,162,75,0.35); }
+    100%{ box-shadow:0 0 0 1px rgba(0,0,0,0.35), 0 30px 60px rgba(0,0,0,0.55); }
+  }
+
+  @media (max-width:480px){
+    h1{ font-size:34px; }
+    .card{ padding:26px 18px 22px; }
+    button.helm{ min-width:100px; font-size:11.5px; padding:12px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<svg class="compass" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="46" fill="none" stroke="#e7c576" stroke-width="2"/>
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#e7c576" stroke-width="1"/>
+  <polygon points="50,8 56,50 50,92 44,50" fill="#e7c576"/>
+  <polygon points="8,50 50,44 92,50 50,56" fill="#e7c576" opacity="0.6"/>
+  <circle cx="50" cy="50" r="4" fill="#e7c576"/>
+</svg>
+
+<div class="waves">
+  <svg viewBox="0 0 800 140" preserveAspectRatio="none">
+    <path class="wave-path" d="M0,90 Q100,60 200,90 T400,90 T600,90 T800,90 T1000,90 T1200,90 V140 H0 Z" fill="#1f5c5c" opacity="0.5"/>
+    <path class="wave-path slow" d="M0,110 Q100,85 200,110 T400,110 T600,110 T800,110 T1000,110 T1200,110 V140 H0 Z" fill="#0c2036" opacity="0.7"/>
+  </svg>
+</div>
+
+<div class="stage">
+  <div class="card" id="card">
+    <p class="eyebrow" id="eyebrow">A Sailing Puzzle</p>
+    <h1>Safe Harbour</h1>
+    <p class="subtitle">Ten turns of the wheel stand between your ship and calm water. One wrong call — the shallows, the reef, the rocks, a wild current, or a pirate sail — ends the voyage.</p>
+
+    <div class="rail" id="rail"></div>
+
+    <div class="narrative" id="narrative"></div>
+
+    <div class="choices" id="choices"></div>
+
+    <div class="again" id="again">
+      <button class="restart" id="retryBtn">⟲ Retry from Here</button>
+      <button class="restart subtle" id="restartBtn">Restart the Whole Voyage</button>
+    </div>
+
+    <div class="footer-stats">
+      <span id="attemptsStat">Attempts: 1</span>
+      <span id="bestStat">Furthest reached: Junction 1 of 10</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 10;
+
+// Each junction: narrative text, and three options (port/straight/starboard).
+// Each option: correct (bool) and, if wrong, a hazard {type, text}.
+const junctions = [
+  {
+    text: "Dawn breaks over the harbour mouth. Grey gulls wheel and dive low to port, where the falling tide has thinned to a pale green shimmer of shallows. To starboard, the water holds a darker, ruffled blue — the mark of real depth. Ahead, the channel forks around a long sandbank.",
+    correct: "starboard",
+    port: {type:"Shallows", text:"You favour the shoreward passage. The keel kisses soft sand, then grips it. The tide is falling, not rising — you are stuck fast on the shallows until the sea deigns to return."},
+    straight: {type:"Rocks", text:"You hold dead centre through the fork. A spur of submerged rock, marked on no chart you carry, opens the hull below the waterline."}
+  },
+  {
+    text: "A bank of fog rolls in, thick as wool. Somewhere unseen, a bell buoy tolls again and again, off to starboard — marking a submerged danger no eye could find in this murk.",
+    correct: "port",
+    straight: {type:"Reef", text:"You hold your course into the murk. Too late, white water breaks over a reef charted plainly — had you only been able to see the chart."},
+    starboard: {type:"Current", text:"You bear away to starboard, straight into a tide race the fog had hidden. It seizes the rudder and drags you far off your line, spent and helpless."}
+  },
+  {
+    text: "The fog thins to reveal twin islets, black rock crowned with wind-bent pines, a narrow deep-water gap between them.",
+    correct: "straight",
+    port: {type:"Rocks", text:"You lean toward the nearer islet. Its rocky skirt runs further underwater than it appears above — the hull grinds and holds fast."},
+    starboard: {type:"Shallows", text:"You favour the far islet instead. A shoal fans out from its base, invisible until the lead line finds it. You are aground."}
+  },
+  {
+    text: "A lookout's cry from the crosstrees: a sail astern, low and dark, closing under a black flag. The wind is blowing firm across your port quarter — bear away to starboard and your sails fill full; turn to meet it and you only lose way.",
+    correct: "starboard",
+    port: {type:"Pirates", text:"Turning to port carries you straight across their bow. Grappling hooks fly, and your ship is boarded before you can come about."},
+    straight: {type:"Reef", text:"You hold your course, watching the sail behind rather than the water ahead, and run onto a reef you never saw coming."}
+  },
+  {
+    text: "A strait strewn with reefs opens before you. An old pilot's rhyme surfaces in memory: keep the black buoy well to your starboard hand.",
+    correct: "port",
+    straight: {type:"Reef", text:"You split the difference and hold straight. The rhyme meant something, and you have just learned what — the reef takes the bow clean off."},
+    starboard: {type:"Rocks", text:"You steer hard to starboard of the buoy, past its far side, and find the rock ledge the pilot's rhyme was warning you away from."}
+  },
+  {
+    text: "Ahead, the sea itself seems to boil — a millrace of current channelled between two headlands, white and fast.",
+    correct: "straight",
+    port: {type:"Current", text:"You edge to port, seeking calmer water at the race's margin, and are caught instead in a spinning eddy that will not let you go."},
+    starboard: {type:"Rocks", text:"You edge to starboard instead. The race itself would have carried you through clean; its edge throws you onto a rock ledge below the headland."}
+  },
+  {
+    text: "The pirate sail is closer now, gaining with every minute. Off to starboard, the sky has bruised into a dark line of squall — hard wind, but the kind that could give you the edge, if you can reach it before they reach you.",
+    correct: "starboard",
+    port: {type:"Pirates", text:"Turning to port brings your beam broadside to them. Iron hooks bite into the rail, and boots land on your deck."},
+    straight: {type:"Shallows", text:"You hold straight, unwilling to lose an inch of lead, and run the ship onto a shoal a single turn would have cleared."}
+  },
+  {
+    text: "A rocky headland juts far out to sea. To starboard, foam breaks white and wide well beyond the point itself — the reef's true reach hidden under the swell. To port, the water stays a clean, unbroken blue.",
+    correct: "port",
+    straight: {type:"Rocks", text:"You cut it close, holding straight past the point, and the headland's rocky apron reaches further out than you judged."},
+    starboard: {type:"Reef", text:"You swing wide to starboard instead, out and around — and onto a reef lying just off the point, waiting under the swell."}
+  },
+  {
+    text: "The Narrows: the last strait before harbour waters, marked by leading lights you can just make out ahead.",
+    correct: "straight",
+    port: {type:"Shallows", text:"You bear to port of the leads, and the depth falls away beneath you until there is no depth left. Aground, within sight of home."},
+    starboard: {type:"Current", text:"You bear to starboard of the leads instead, into a set of current the harbourmaster's marks were placed to keep you clear of."}
+  },
+  {
+    text: "Fog again, the last of it — but through the murk, a light glows gold. Somewhere close, the harbourmaster's lamp marks the way between the mole heads.",
+    correct: "starboard",
+    port: {type:"Rocks", text:"You steer toward what you take for the light, to port — and find instead the old mole's collapsed stonework, awash and unlit."},
+    straight: {type:"Reef", text:"You hold straight through the gap you judge by eye. A training wall, submerged at this tide, is the last thing your hull ever touches."}
+  }
+];
+
+const winText = "The fog thins to nothing. Harbour lights burn gold and steady through the last of the mist, and your ship glides between the mole heads into flat, quiet water. Ten turns of the wheel, ten calls rightly made — you have reached safe harbour.";
+
+let current = 1;      // junction number, 1-indexed
+let attempts = 1;
+let best = 1;
+let wreckedAt = null; // junction number where current attempt failed, for rail marking
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  for(let i=1;i<=TOTAL;i++){
+    const st = document.createElement('div');
+    st.className = 'station';
+    if(i === TOTAL && current > TOTAL){
+      st.classList.add('harbour');
+      st.textContent = '⚓';
+    } else if(wreckedAt === i){
+      st.classList.add('wrecked');
+      st.textContent = '×';
+    } else if(i < current){
+      st.classList.add('done');
+      st.textContent = '✓';
+    } else if(i === current){
+      st.classList.add('current');
+      st.textContent = i;
+    } else {
+      st.textContent = i;
+    }
+    rail.appendChild(st);
+    if(i < TOTAL){
+      const link = document.createElement('div');
+      link.className = 'rail-link';
+      rail.appendChild(link);
+    }
+  }
+}
+
+function renderStats(){
+  document.getElementById('attemptsStat').textContent = `Attempts: ${attempts}`;
+  document.getElementById('bestStat').textContent = best > TOTAL
+    ? `Furthest reached: Safe Harbour`
+    : `Furthest reached: Junction ${best} of ${TOTAL}`;
+}
+
+function renderJunction(){
+  wreckedAt = null;
+  const card = document.getElementById('card');
+  card.classList.remove('flash-hazard','flash-win');
+  const j = junctions[current-1];
+  document.getElementById('eyebrow').textContent = `Junction ${current} of ${TOTAL}`;
+  document.getElementById('narrative').innerHTML =
+    `<span class="tag junction">Decision point</span><br>${j.text}`;
+
+  const choices = document.getElementById('choices');
+  choices.innerHTML = '';
+  const opts = [
+    {key:'port', label:'Port'},
+    {key:'straight', label:'Straight Ahead'},
+    {key:'starboard', label:'Starboard'}
+  ];
+  opts.forEach(o=>{
+    const b = document.createElement('button');
+    b.className = `helm ${o.key}`;
+    b.textContent = o.label;
+    b.onclick = () => choose(o.key);
+    choices.appendChild(b);
+  });
+  document.getElementById('again').style.display = 'none';
+  renderRail();
+  renderStats();
+}
+
+function choose(key){
+  const j = junctions[current-1];
+  const card = document.getElementById('card');
+  if(key === j.correct){
+    current++;
+    if(current > best) best = current;
+    if(current > TOTAL){
+      renderWin();
+    } else {
+      renderJunction();
+    }
+  } else {
+    wreckedAt = current;
+    const hazard = j[key];
+    document.getElementById('eyebrow').textContent = `Junction ${current} of ${TOTAL} — Voyage Ended`;
+    document.getElementById('narrative').innerHTML =
+      `<span class="tag hazard">${hazard.type}</span><br>${hazard.text}`;
+    document.getElementById('choices').innerHTML = '';
+    document.getElementById('retryBtn').style.display = 'block';
+    document.getElementById('retryBtn').textContent = '⟲ Retry from Here';
+    document.getElementById('restartBtn').textContent = 'Restart the Whole Voyage';
+    document.getElementById('again').style.display = 'flex';
+    renderRail();
+    renderStats();
+    card.classList.add('flash-hazard');
+  }
+}
+
+function renderWin(){
+  const card = document.getElementById('card');
+  document.getElementById('eyebrow').textContent = `Voyage Complete`;
+  document.getElementById('narrative').innerHTML =
+    `<span class="tag win">Safe Harbour</span><br>${winText}`;
+  document.getElementById('choices').innerHTML = '';
+  document.getElementById('retryBtn').style.display = 'none';
+  document.getElementById('restartBtn').textContent = '⟲ Sail Again';
+  document.getElementById('again').style.display = 'flex';
+  renderRail();
+  renderStats();
+  card.classList.add('flash-win');
+}
+
+document.getElementById('retryBtn').onclick = () => {
+  attempts++;
+  renderJunction();
+};
+
+document.getElementById('restartBtn').onclick = () => {
+  current = 1;
+  attempts++;
+  renderJunction();
+};
+
+renderJunction();
+</script>
+
+</body>
+</html>
